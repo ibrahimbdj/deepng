@@ -1,7 +1,10 @@
 #ifndef PNG_H
 #define PNG_H
 
-int is_png(const char* file);
-int hexcat(const char* file);
+#include <stdio.h>
+
+int is_png(FILE* file);
+int hexcat(FILE* file);
+int list(FILE* file);
 
 #endif

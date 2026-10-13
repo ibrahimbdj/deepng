@@ -1,2 +1,2 @@
-png: src/main.c src/png.c
-	gcc src/*.c -Wall -Wextra -o png
+pngfall: src/main.c src/png.c src/chunk.c src/chunk.h src/png.h
+	gcc src/*.c -Wall -Wextra -o pngfall
