@@ -41,6 +41,43 @@ static void list_line(struct chunk* c){
     printf("\n");
 }
 
+static char* color_name(uint8_t color_type){
+    switch(color_type){
+        case 0:
+            return "Greyscale";
+        case 2:
+            return "Truecolor";
+        case 3:
+            return "Indexed-color";
+        case 4:
+            return "Greyscale with alpha";
+        case 6:
+            return "Truecolor with alpha";
+    }
+
+    return "Unknown Color type";
+}
+
+static char* compression_name(uint8_t compression_method){
+    switch(compression_method){
+        case 0:
+            return "Deflate";
+    }
+
+    return "Unknown";
+}
+
+static char* interlace_name(uint8_t interlace_method){
+    switch(interlace_method){
+        case 0:
+            return "No interlace";
+        case 1:
+            return "Adam7";
+    }
+
+    return "Unknown";
+}
+
 int is_png(FILE* file){
     unsigned char bytes[sizeof(png_signature)]; 
 
@@ -90,5 +127,51 @@ int list(FILE* file){
     list_line(c);
     free(c);
     
+    return 0;
+}
+
+int info(FILE* file){
+    if(is_png(file) < 0) {
+        fprintf(stderr, "Wrong file type, please provide a PNG file\n");
+        return -1;
+    }
+    
+    uint32_t tmp32;
+    uint8_t tmp8;  
+    
+    struct chunk* ihdr = get_chunk(file);
+    if(ihdr == NULL) return -1;
+    unsigned char buf[4];
+    
+    if(fseek(file, ihdr->data_offset, SEEK_SET) < 0){
+        fprintf(stderr, "fseek failed: %s\n", strerror(errno));
+        return -1;
+    }
+
+    if(fread_wrapper(buf, 1, sizeof(unsigned int), file)< 0) return -1;
+    tmp32 = buf_to_uint32(buf, sizeof(buf));
+    printf("width: %u\n", tmp32);
+
+    if(fread_wrapper(buf, 1, sizeof(unsigned int), file) < 0) return -1;
+    tmp32 = buf_to_uint32(buf, sizeof(buf));
+    printf("height: %u\n", tmp32);
+
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
+    printf("Bit depth: %u\n", tmp8);
+
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0)  return -1;
+    printf("Color type: %s\n", color_name(tmp8));
+
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0)  return -1;
+    printf("Compression method: %s\n", compression_name(tmp8));
+
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
+    printf("Filter method: %u\n", tmp8);
+
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
+    printf("Interlace method: %s\n", interlace_name(tmp8));
+
+    printf("\n");
+
     return 0;
 }

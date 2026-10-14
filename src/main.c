@@ -28,13 +28,18 @@ int main(int argc, char* argv[]){
         exit(0);
     }
     
-    if(strcmp(argv[1], "hexcat") == 0){
+    if(strcmp(argv[1], "cat") == 0){
         if(hexcat(file) < 0) exit(1);
         else exit(0);
     }
 
     if(strcmp(argv[1], "list") == 0){
         if(list(file) < 0) exit(1);
+        exit(0);
+    }
+
+    if(strcmp(argv[1], "info") == 0){
+        if(info(file) < 0) exit(1);
         exit(0);
     }
 

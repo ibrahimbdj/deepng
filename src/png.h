@@ -6,5 +6,6 @@
 int is_png(FILE* file);
 int hexcat(FILE* file);
 int list(FILE* file);
+int info(FILE* file);
 
 #endif
