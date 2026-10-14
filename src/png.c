@@ -4,8 +4,42 @@
 #include <errno.h>
 #include <ctype.h>
 #include "chunk.h"
+#include "utilities.h"
 
 const unsigned char png_signature[] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+
+static void list_title(){
+    nprintf("---------------", 4);
+    printf("\n");
+    printf("|   OFFSET    |");
+    printf("    TYPE      |");
+    printf("    SIZE      |");
+    printf("    CLASS     |\n");
+    nprintf("---------------", 4);
+    printf("\n");
+}
+
+static void list_line(struct chunk* c){
+    int prn;
+
+    printf("|");
+    prn = printf("%ld", (c->data_offset-8));
+    nprintf(" ", (13-prn));
+    printf("|");
+    prn = printf("%s", c->type);
+    nprintf(" ", (14-prn));
+    printf("|");
+    prn = printf("%u", (c->data_len + 12));
+    nprintf(" ", (14-prn));
+    printf("|");
+    if(isupper((unsigned char)c->type[0]) == 0) prn = printf("Ancillary");
+    else prn = printf("Critical");
+    nprintf(" ", (14-prn));
+    printf("|");
+    printf("\n");
+    nprintf("---------------", 4);
+    printf("\n");
+}
 
 int is_png(FILE* file){
     unsigned char bytes[sizeof(png_signature)]; 
@@ -36,45 +70,6 @@ int hexcat(FILE* file){
     return 0;
 }
 
-static void nprintf(const char* txt, int n){
-    for(int i = 0; i < n; i++){
-        printf("%s", txt);
-    }
-}
-
-static void list_title(){
-    nprintf("---------------", 4);
-    printf("\n");
-    printf("|   OFFSET    |");
-    printf("    TYPE      |");
-    printf("    SIZE      |");
-    printf("    CLASS     |\n");
-    nprintf("---------------", 4);
-    printf("\n");
-}
-
-static void list_line(struct chunk* c, FILE* file){
-    int prn;
-
-    printf("|");
-    prn = printf("%ld", ftell(file));
-    nprintf(" ", (13-prn));
-    printf("|");
-    prn = printf("%s", c->type);
-    nprintf(" ", (14-prn));
-    printf("|");
-    prn = printf("%u", (c->data_len + 12));
-    nprintf(" ", (14-prn));
-    printf("|");
-    if(isupper(c->type[1]) == 0) prn = printf("Ancillary");
-    else prn = printf("Critical");
-    nprintf(" ", (14-prn));
-    printf("|");
-    printf("\n");
-    nprintf("---------------", 4);
-    printf("\n");
-}
-
 int list(FILE* file){
     if(is_png(file) < 0) {
         fprintf(stderr, "Wrong file type, please provide a PNG file\n");
@@ -84,13 +79,16 @@ int list(FILE* file){
     list_title();
 
     struct chunk* c = get_chunk(file);
+    if(c == NULL) return -1;
+
     while(strcmp(c->type, "IEND") != 0){
-        list_line(c, file);
+        list_line(c);
         free(c);
         c = get_chunk(file);
+        if(c == NULL) return -1;
     }
-    list_line(c, file);
+    list_line(c);
     free(c);
-    //DATA_LEN A CALCULER
+    
     return 0;
 }

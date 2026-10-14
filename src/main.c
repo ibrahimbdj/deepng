@@ -38,7 +38,10 @@ int main(int argc, char* argv[]){
         exit(0);
     }
 
-    else fprintf(stderr, "Unknown command: pngfall help\n");
+    else {
+        fprintf(stderr, "Unknown command: pngfall help\n");
+        exit(1);
+    }
 
     fclose(file);
 
