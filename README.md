@@ -22,7 +22,7 @@ At some point, I'd like to:
 |---|---|---|
 | `ispng <file>` | Indicates whether it is a PNG | Done |
 | `list <file>` | Lists every chunk: offset, type, size, critical/ancillary class | minimum |
-| `cat <file>` | Prints the raw file as different format | minimum |
+| `hexcat <file>` | Print the raw file in hexadecimal | minimum |
 | `integrity <file>` | Check PNG integrity via crc | minimum |
 | `info <file>` | Provides a description of the file from various perspectives in plain text, (for example: width, heigth, compression methode, interlace, etc...)| minimum |
 | `delmd <src> <dest>` | Writes a copy removing the anciliary chunks and reports the number of bytes removed | minimum |
