@@ -8,7 +8,7 @@
 int main(int argc, char* argv[]){
 
     if(argc < 3){
-        fprintf(stderr, "User: png <command> <file>\n");
+        fprintf(stderr, "Use: pngfall <command> [args...]\n");
         exit(1);
     }
 
@@ -40,6 +40,20 @@ int main(int argc, char* argv[]){
 
     if(strcmp(argv[1], "info") == 0){
         if(info(file) < 0) exit(1);
+        exit(0);
+    }
+
+    if(strcmp(argv[1], "integrity") == 0){
+        if(png_integrity(file) < 0) exit(1);
+        exit(0);
+    }
+
+    if(strcmp(argv[1], "delmd") == 0){
+        if(argc < 4){
+            printf("Use: pngfall delmd <src> <dst>\n");
+            exit(1);
+        }
+        if(delmd(file, argv[3]) < 0) exit(1);
         exit(0);
     }
 

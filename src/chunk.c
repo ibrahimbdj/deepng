@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include "utilities.h"
 
 struct chunk{
@@ -11,6 +12,23 @@ struct chunk{
     uint64_t data_offset;
     unsigned char crc[4];
 };
+
+//static char chunk_type_nodel[] = {};
+
+static int is_critical(struct chunk* c){
+    return isupper((unsigned char)c->type[0]);
+}
+
+void chunk_list_title(){
+    nprintf("---------------", 4);
+    printf("\n");
+    printf("|   OFFSET    |");
+    printf("    TYPE      |");
+    printf("    SIZE      |");
+    printf("    CLASS     |\n");
+    nprintf("---------------", 4);
+    printf("\n");
+}
 
 struct chunk* get_chunk(FILE* file){
     struct chunk* c = malloc(sizeof(struct chunk));
@@ -39,4 +57,40 @@ struct chunk* get_chunk(FILE* file){
     memcpy(c->crc, buf, sizeof(buf));
 
     return c;
+}
+
+void print_chunk(struct chunk* c, int cap){
+    int prn;
+
+    if(cap > 0) {
+        nprintf("---------------", 4);
+        printf("\n");
+    }
+    
+    printf("|");
+    prn = printf("%lu", (c->data_offset-8));
+    nprintf(" ", (13-prn));
+    printf("|");
+    prn = printf("%s", c->type);
+    nprintf(" ", (14-prn));
+    printf("|");
+    prn = printf("%u", (c->data_len + 12));
+    nprintf(" ", (14-prn));
+    printf("|");
+    if(is_critical(c)) prn = printf("Critical");
+    else prn = printf("Ancillary");
+    nprintf(" ", (14-prn));
+    printf("|");
+    printf("\n");
+    nprintf("---------------", 4);
+    printf("\n");
+}
+
+int chunk_integrity(struct chunk* c){
+    return c->data_len;
+}
+
+int is_deletable(struct chunk* c){
+    if(is_critical(c)) return 0;
+    return 1;
 }

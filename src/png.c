@@ -1,45 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <ctype.h>
+#include <sys/param.h>
 #include "chunk.h"
 #include "utilities.h"
 
 const unsigned char png_signature[] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
-static void list_title(){
-    nprintf("---------------", 4);
-    printf("\n");
-    printf("|   OFFSET    |");
-    printf("    TYPE      |");
-    printf("    SIZE      |");
-    printf("    CLASS     |\n");
-    nprintf("---------------", 4);
-    printf("\n");
-}
-
-static void list_line(struct chunk* c){
-    int prn;
-
-    printf("|");
-    prn = printf("%ld", (c->data_offset-8));
-    nprintf(" ", (13-prn));
-    printf("|");
-    prn = printf("%s", c->type);
-    nprintf(" ", (14-prn));
-    printf("|");
-    prn = printf("%u", (c->data_len + 12));
-    nprintf(" ", (14-prn));
-    printf("|");
-    if(isupper((unsigned char)c->type[0]) == 0) prn = printf("Ancillary");
-    else prn = printf("Critical");
-    nprintf(" ", (14-prn));
-    printf("|");
-    printf("\n");
-    nprintf("---------------", 4);
-    printf("\n");
-}
 
 static char* color_name(uint8_t color_type){
     switch(color_type){
@@ -112,19 +81,18 @@ int list(FILE* file){
         fprintf(stderr, "Wrong file type, please provide a PNG file\n");
         return -1;
     }
-    
-    list_title();
 
     struct chunk* c = get_chunk(file);
-    if(c == NULL) return -1;
+
+    chunk_list_title();
 
     while(strcmp(c->type, "IEND") != 0){
-        list_line(c);
+        if(c == NULL) return -1;
+        print_chunk(c, 0);
         free(c);
         c = get_chunk(file);
-        if(c == NULL) return -1;
     }
-    list_line(c);
+    print_chunk(c, 0);
     free(c);
     
     return 0;
@@ -170,8 +138,90 @@ int info(FILE* file){
 
     if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
     printf("Interlace method: %s\n", interlace_name(tmp8));
-
     printf("\n");
+
+    free(ihdr);
+    return 0;
+}
+
+int png_integrity(FILE* file){
+    if(is_png(file) < 0) {
+        fprintf(stderr, "PNG signature corrupted\n");
+        return -1;
+    }
+
+    int ret = 0;
+    struct chunk* c = get_chunk(file);
+
+    while(strcmp(c->type, "IEND") != 0){
+        if(c == NULL) return -1;
+        if(chunk_integrity(c) < 0){
+            printf("%lu\n", (c->data_offset - 8));
+            ret = -1;
+        }
+        free(c);
+        c = get_chunk(file);
+    }
+
+    if(chunk_integrity(c) < 0){
+            printf("%lu\n", (c->data_offset - 8));
+            ret = -1;
+    }
+    free(c);
+
+    return ret;
+}
+
+int delmd(FILE* file, char* new_file_name){
+    if(is_png(file) < 0) {
+        fprintf(stderr, "Wrong file type, please provide a PNG file\n");
+        return -1;
+    }
+
+    fseek(file, 0, SEEK_SET);
+
+    char* cwd = getcwd(NULL, 0);
+    char new_file_path[strlen(cwd) + strlen(new_file_name) + 2];
+
+    strcpy(new_file_path, cwd);
+    strcat(strcat(new_file_path, "/"), new_file_name);
+    free(cwd);
+
+    FILE* new_file = fopen(new_file_name, "w+");
+    char* buf[1024];
+    int read_bytes;
+    int chunk_size;
+
+    read_bytes = fread(buf, 1, 8, file);
+    fwrite(buf, 1, read_bytes, new_file);
+
+    struct chunk* c = get_chunk(file);
+
+    while(strcmp(c->type, "IEND") != 0){
+        if(c == NULL) return -1;
+
+        if(is_deletable(c) == 0){
+            chunk_size = (c->data_len + 12);
+            fseek(file, (c->data_offset - 8), SEEK_SET);
+
+            while(chunk_size != 0){
+                read_bytes = fread(buf, 1, MIN(sizeof(buf), chunk_size), file);
+                fwrite(buf, 1, read_bytes, new_file);
+                chunk_size = chunk_size - read_bytes;
+            }
+
+        }
+
+        free(c);
+        c = get_chunk(file);
+    }
+
+    fseek(file, (c->data_offset - 8), SEEK_SET);
+    read_bytes = fread(buf, 1, (c->data_len + 12), file);
+    fwrite(buf, 1, read_bytes, new_file);
+
+    free(c);
+    fclose(new_file);
 
     return 0;
 }

@@ -13,5 +13,9 @@ struct chunk{
 };
 
 struct chunk* get_chunk(FILE* file);
+void print_chunk(struct chunk* c, int cap);
+int chunk_integrity(struct chunk* c);
+int is_deletable(struct chunk* c);
+void chunk_list_title();
 
 #endif
