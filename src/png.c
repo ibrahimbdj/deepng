@@ -218,6 +218,19 @@ int delmd(FILE* file, char* new_file_name){
         return -1;
 }
 
+int chunk(FILE* file, long offset){
+    if(fseek_wrapper(file, offset, SEEK_SET) < 0) return -1;
+
+    struct chunk* c = get_chunk(file);
+    if(c == NULL) return -1;
+
+    chunk_list_title();
+    print_chunk(c, 0);
+    free(c);
+    
+    return 0;
+}
+
 int png_integrity(FILE* file){
     if(is_png(file) < 0) {
         fprintf(stderr, "PNG signature corrupted\n");
@@ -242,6 +255,5 @@ int png_integrity(FILE* file){
             ret = -1;
     }
     free(c);
-
     return ret;
 }

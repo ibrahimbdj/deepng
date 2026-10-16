@@ -22,10 +22,10 @@ static int is_critical(struct chunk* c){
 void chunk_list_title(){
     nprintf("---------------", 4);
     printf("\n");
-    printf("|   OFFSET    |");
-    printf("    TYPE      |");
-    printf("    SIZE      |");
-    printf("    CLASS     |\n");
+    printf("|OFFSET       |");
+    printf("TYPE          |");
+    printf("SIZE          |");
+    printf("CLASS         |\n");
     nprintf("---------------", 4);
     printf("\n");
 }

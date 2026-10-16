@@ -9,5 +9,6 @@ int list(FILE* file);
 int info(FILE* file);
 int png_integrity(FILE* file);
 int delmd(FILE* file, char* new_file);
+int chunk(FILE* file, long offset);
 
 #endif
