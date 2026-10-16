@@ -20,6 +20,7 @@ At some point, I'd like to:
 | `list <file>` | Lists every chunk: offset, type, size, critical/ancillary class | **minimum**, missing: options, more categories in the information |
 | `cat <file>` | Print the raw file as differents formats with filtering options | **minimum**, hexadecimal ok, missing: cat in differents formats, options for filtering the output |
 | `integrity <file>` | Check PNG integrity | **minimum**, crc check, missing: corrupted chunks |
+| `chunk <file> <offset>` | print chunk at `<offset>` | **minimum**, print chunk at offset ok, missing: printing using methods other than offset as well |
 | `info <file>` | Provides a description of the file from various perspectives in plain text, (for example: width, heigth, compression methode, interlace, etc...)| **minimum**, ihdr ok, missing: useful informations from certain other chunks |
 | `delmd <src> <dest>` | Writes a copy removing the anciliary chunks and reports the number of bytes removed | **minimum**, delete ancillary chunk ok, missing: choose what to delete or keep with greater precision |
 |  `inject <type> [source]` (may change)| Inserts a chunk of the given type, reads its content from source or stdin if omitted | **Not implemented** |
