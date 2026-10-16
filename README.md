@@ -12,9 +12,7 @@ At some point, I'd like to:
 
 - add features;
 - go deeper on the existing ones;
-- change the output format so the command integrates cleanly into scripts;
-- add my own touch, so the utility has a reason to be used over another;
-- explore what is rarely or poorly done in existing utilities and provide a solution.
+- change the output format so the command integrates cleanly into scripts, each command must have human output and scrip output;
 
 ## Feature status
 
