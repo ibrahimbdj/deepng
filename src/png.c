@@ -144,6 +144,80 @@ int info(FILE* file){
     return 0;
 }
 
+int delmd(FILE* file, char* new_file_name){
+    if(is_png(file) < 0) {
+        fprintf(stderr, "Wrong file type, please provide a PNG file\n");
+        return -1;
+    }
+
+    if(fseek_wrapper(file, 0, SEEK_SET) < 0) return -1;
+
+    char* cwd = getcwd(NULL, 0);
+    if(cwd == NULL) {
+        fprintf(stderr, "getcwd failed: %s\n", strerror(errno));
+        return -1;
+    }
+
+    char new_file_path[strlen(cwd) + strlen(new_file_name) + 2];
+
+    strcpy(new_file_path, cwd);
+    strcat(strcat(new_file_path, "/"), new_file_name);
+    free(cwd);
+
+    FILE* new_file = fopen(new_file_name, "w+");
+    if(new_file == NULL) return -1;
+
+    char* buf[1024];
+    int read_bytes;
+    int chunk_size;
+
+    read_bytes = fread_wrapper(buf, 1, 8, file);
+    if(read_bytes < 0)  return -1;
+    if(fwrite_wrapper(buf, 1, read_bytes, new_file) < 0) return -1;
+
+    struct chunk* c = get_chunk(file);
+    if(c == NULL) goto fail;
+
+    while(strcmp(c->type, "IEND") != 0){
+
+        if(is_deletable(c) == 0){
+            chunk_size = (c->data_len + 12);
+            if(fseek(file, (c->data_offset - 8), SEEK_SET) < 0) goto fail;
+
+            while(chunk_size != 0){
+                read_bytes = fread_wrapper(buf, 1, MIN(sizeof(buf), chunk_size), file);
+                if(read_bytes < 0) goto fail;
+                if(fwrite_wrapper(buf, 1, read_bytes, new_file) < 0) goto fail;
+                chunk_size = chunk_size - read_bytes;
+            }
+
+        }
+
+        free(c);
+        c = get_chunk(file);
+        if(c == NULL) goto fail;
+    }
+
+    if(fseek_wrapper(file, (c->data_offset - 8), SEEK_SET) < 0) goto fail;
+    read_bytes = fread_wrapper(buf, 1, (c->data_len + 12), file);
+    if(read_bytes < 0)  goto fail;
+    if(fwrite_wrapper(buf, 1, read_bytes, new_file) < 0) goto fail;
+
+    free(c);
+    if(fclose(new_file) < 0){
+        fprintf(stderr, "Failed to close new file: %s\n", strerror(errno));
+        return -1;
+    }
+    return 0;
+
+    fail:
+        free(c);
+        if(fclose(new_file) < 0){
+            fprintf(stderr, "Failed to close new file: %s\n", strerror(errno));
+        }
+        return -1;
+}
+
 int png_integrity(FILE* file){
     if(is_png(file) < 0) {
         fprintf(stderr, "PNG signature corrupted\n");
@@ -170,58 +244,4 @@ int png_integrity(FILE* file){
     free(c);
 
     return ret;
-}
-
-int delmd(FILE* file, char* new_file_name){
-    if(is_png(file) < 0) {
-        fprintf(stderr, "Wrong file type, please provide a PNG file\n");
-        return -1;
-    }
-
-    fseek(file, 0, SEEK_SET);
-
-    char* cwd = getcwd(NULL, 0);
-    char new_file_path[strlen(cwd) + strlen(new_file_name) + 2];
-
-    strcpy(new_file_path, cwd);
-    strcat(strcat(new_file_path, "/"), new_file_name);
-    free(cwd);
-
-    FILE* new_file = fopen(new_file_name, "w+");
-    char* buf[1024];
-    int read_bytes;
-    int chunk_size;
-
-    read_bytes = fread(buf, 1, 8, file);
-    fwrite(buf, 1, read_bytes, new_file);
-
-    struct chunk* c = get_chunk(file);
-
-    while(strcmp(c->type, "IEND") != 0){
-        if(c == NULL) return -1;
-
-        if(is_deletable(c) == 0){
-            chunk_size = (c->data_len + 12);
-            fseek(file, (c->data_offset - 8), SEEK_SET);
-
-            while(chunk_size != 0){
-                read_bytes = fread(buf, 1, MIN(sizeof(buf), chunk_size), file);
-                fwrite(buf, 1, read_bytes, new_file);
-                chunk_size = chunk_size - read_bytes;
-            }
-
-        }
-
-        free(c);
-        c = get_chunk(file);
-    }
-
-    fseek(file, (c->data_offset - 8), SEEK_SET);
-    read_bytes = fread(buf, 1, (c->data_len + 12), file);
-    fwrite(buf, 1, read_bytes, new_file);
-
-    free(c);
-    fclose(new_file);
-
-    return 0;
 }

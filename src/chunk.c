@@ -86,11 +86,11 @@ void print_chunk(struct chunk* c, int cap){
     printf("\n");
 }
 
-int chunk_integrity(struct chunk* c){
-    return c->data_len;
-}
-
 int is_deletable(struct chunk* c){
     if(is_critical(c)) return 0;
     return 1;
+}
+
+int chunk_integrity(struct chunk* c){
+    return c->data_len;
 }
