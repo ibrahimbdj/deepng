@@ -114,35 +114,39 @@ int info(FILE* file){
     
     if(fseek(file, ihdr->data_offset, SEEK_SET) < 0){
         fprintf(stderr, "fseek failed: %s\n", strerror(errno));
-        return -1;
+        goto fail;
     }
 
-    if(fread_wrapper(buf, 1, sizeof(unsigned int), file)< 0) return -1;
+    if(fread_wrapper(buf, 1, sizeof(unsigned int), file)< 0) goto fail;
     tmp32 = buf_to_uint32(buf, sizeof(buf));
     printf("width: %u\n", tmp32);
 
-    if(fread_wrapper(buf, 1, sizeof(unsigned int), file) < 0) return -1;
+    if(fread_wrapper(buf, 1, sizeof(unsigned int), file) < 0) goto fail;
     tmp32 = buf_to_uint32(buf, sizeof(buf));
     printf("height: %u\n", tmp32);
 
-    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) goto fail;
     printf("Bit depth: %u\n", tmp8);
 
-    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0)  return -1;
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) goto fail;
     printf("Color type: %s\n", color_name(tmp8));
 
-    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0)  return -1;
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) goto fail;
     printf("Compression method: %s\n", compression_name(tmp8));
 
-    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) goto fail;
     printf("Filter method: %u\n", tmp8);
 
-    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) return -1;
+    if(fread_wrapper(&tmp8, 1, sizeof(uint8_t), file) < 0) goto fail;
     printf("Interlace method: %s\n", interlace_name(tmp8));
     printf("\n");
 
     free(ihdr);
     return 0;
+
+    fail:
+        free(ihdr);
+        return -1;
 }
 
 int delmd(FILE* file, char* new_file_name){
