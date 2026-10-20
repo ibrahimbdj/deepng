@@ -1,5 +1,7 @@
 # pngfall
 
+In the interest of transparency: this README was written with the help of Claude, Anthropic’s AI assistant. The code is entirely my own
+
 > A command-line PNG structure inspector written in C, with no external dependencies.
 
 pngfall reads the *skeleton* of a PNG file: it lists the chunks a file is made of, verifies their checksums, decodes the image header, and writes back a copy without the metadata. It never decompresses pixel data.
@@ -47,22 +49,11 @@ $ pngfall delmd pngtest/exif2c08.png stripped.png   # 1788 -> 798 bytes
 
 ## Scope
 
-pngfall works on the container, not on the image. Decompressing `IDAT`, line filters, pixel reconstruction, palettes and Adam7 de-interlacing are deliberately out of scope — that is a decoder's job, and leaving it out is what keeps this a parsing exercise.
-
-`integrity` checks *structural* validity only. A file can pass it while being semantically invalid: PngSuite's `xc9n2c08.png` declares colour type 9, which does not exist, yet all of its checksums are correct.
+pngfall works on the container, not on the image.
 
 ## Testing
 
 `pngtest/` contains [PngSuite](http://www.schaik.com/pngsuite/): every colour type and bit depth, interlaced variants, files split across several `IDAT` chunks, and files deliberately corrupted in the signature or in a checksum. Since the tool is pointed at files that may be damaged, it is also run against every possible truncation of a valid file.
-
-## What I learned
-
-- **Undefined behaviour does not mean "crash".** Writing `type[5]` in a five-element array went unnoticed for a long time: the memory it touched happened to be harmless. Not the kind of bug you find by re-reading code.
-- **Where to check a return value.** The NULL check for a failed read existed, but sat *after* the pointer was used. Detecting and propagating an error is three quarters of the work — the value still has to be tested between the call and its use.
-- **Parsers are tested on broken input.** Early tests all used healthy PNGs, so the failure paths were never taken and their bugs stayed invisible.
-- **Untrusted lengths need bounds.** A chunk length read straight from the file feeds a seek, and in any future version an allocation. It is validated against the format maximum before use.
-
-Also: CRC32 implemented bitwise from the reflected polynomial rather than copied from the specification's sample code.
 
 ## Feature status
 
