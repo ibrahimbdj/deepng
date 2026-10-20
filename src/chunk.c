@@ -31,6 +31,10 @@ struct chunk* get_chunk(FILE* file){
 
     if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) goto fail;
     c->data_len = buf_to_uint32(buf, sizeof(buf));
+    if(c->data_len > INT32_MAX){
+        fprintf(stderr, "chunk size too large\n");
+        goto fail;
+    }
 
     if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) goto fail;
     memcpy(c->type, buf, sizeof(buf));
