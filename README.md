@@ -71,7 +71,3 @@ pngfall works on the metadata, not on the image.
 |  `inject <type> [source]` (may change)| Inserts a chunk of the given type, reads its content from source or stdin if omitted | **Not implemented** |
 
 New Features incoming...
-
-## License
-
-MIT.
