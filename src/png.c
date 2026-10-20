@@ -238,22 +238,31 @@ int png_integrity(FILE* file){
     }
 
     int ret = 0;
+    int tmp_ret = 0;
     struct chunk* c = get_chunk(file);
 
     while(strcmp(c->type, "IEND") != 0){
         if(c == NULL) return -1;
-        if(chunk_integrity(c) < 0){
+        tmp_ret = chunk_integrity(c, file);
+
+        if(tmp_ret < 0){
+            if(tmp_ret == -2) goto fail;
             printf("%lu\n", (c->data_offset - 8));
             ret = -1;
         }
+
         free(c);
         c = get_chunk(file);
     }
 
-    if(chunk_integrity(c) < 0){
+    if(chunk_integrity(c, file) < 0){
             printf("%lu\n", (c->data_offset - 8));
             ret = -1;
     }
     free(c);
     return ret;
+
+    fail:
+        free(c);
+        return -2;
 }

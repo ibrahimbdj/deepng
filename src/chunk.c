@@ -13,7 +13,7 @@ struct chunk{
     unsigned char crc[4];
 };
 
-//static char chunk_type_nodel[] = {};
+//static char chunk_type_no_delete[] = {};
 
 static int is_critical(struct chunk* c){
     return isupper((unsigned char)c->type[0]);
@@ -91,6 +91,34 @@ int is_deletable(struct chunk* c){
     return 1;
 }
 
-int chunk_integrity(struct chunk* c){
-    return c->data_len;
+uint32_t chunk_integrity(struct chunk* c, FILE* file){
+    long cur_pos = ftell(file);
+    if(cur_pos < 0){
+        fprintf(stderr, "ftell failed: %s\n", strerror(errno));
+        return -2;
+    }
+    if(fseek_wrapper(file, (c->data_offset - 4), SEEK_SET) < 0) return -2;
+
+    uint32_t crc = 0xFFFFFFFF;
+    uint32_t polynome = 0xEDB88320;
+    unsigned char byte;
+    uint32_t nbytes = c->data_len + 4;
+
+    while(nbytes > 0){
+        if(fread_wrapper(&byte, 1, 1, file) < 0) return -2;
+
+        for(int i = 0; i < 8; i++){
+            
+            if((byte & 1) ^ (crc & 1)) crc = (crc >> 1) ^ polynome;
+            else crc = crc >> 1;
+            byte = byte >> 1;
+        }
+
+        nbytes--;
+    }
+
+    if(fseek_wrapper(file, cur_pos, SEEK_SET) < 0) return -2;
+    
+    if((crc ^ 0xFFFFFFFF) == buf_to_uint32(c->crc, 4)) return 0;
+    else return -1;
 }

@@ -9,6 +9,7 @@ void nprintf(const char* txt, int n){
         printf("%s", txt);
     }
 }
+
 uint32_t buf_to_uint32(unsigned char buf[], size_t size){
     uint32_t ret = 0;
 

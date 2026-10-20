@@ -44,7 +44,11 @@ int main(int argc, char* argv[]){
     }
 
     if(strcmp(argv[1], "integrity") == 0){
-        if(png_integrity(file) < 0) goto fail;
+        int ret = png_integrity(file)
+        if(ret < 0) {
+            if(ret == -2) fprintf(stderr, "integrity check failed, please read the error message\n");
+            goto fail
+        }
         goto success;
     }
 
