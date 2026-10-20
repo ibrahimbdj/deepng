@@ -83,14 +83,15 @@ int list(FILE* file){
     }
 
     struct chunk* c = get_chunk(file);
+    if(c == NULL) return -1;
 
     chunk_list_title();
 
     while(strcmp(c->type, "IEND") != 0){
-        if(c == NULL) return -1;
         print_chunk(c, 0);
         free(c);
         c = get_chunk(file);
+        if(c == NULL) return -1;
     }
     print_chunk(c, 0);
     free(c);
@@ -167,7 +168,7 @@ int delmd(FILE* file, char* new_file_name){
     FILE* new_file = fopen(new_file_name, "w+");
     if(new_file == NULL) return -1;
 
-    char* buf[1024];
+    char buf[1024];
     int read_bytes;
     int chunk_size;
 
@@ -240,9 +241,9 @@ int png_integrity(FILE* file){
     int ret = 0;
     int tmp_ret = 0;
     struct chunk* c = get_chunk(file);
+    if(c == NULL) return -1;
 
     while(strcmp(c->type, "IEND") != 0){
-        if(c == NULL) return -1;
         tmp_ret = chunk_integrity(c, file);
 
         if(tmp_ret < 0){
@@ -253,6 +254,7 @@ int png_integrity(FILE* file){
 
         free(c);
         c = get_chunk(file);
+        if(c == NULL) return -1;
     }
 
     if(chunk_integrity(c, file) < 0){

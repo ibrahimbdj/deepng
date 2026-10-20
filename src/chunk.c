@@ -5,15 +5,9 @@
 #include <errno.h>
 #include <ctype.h>
 #include "utilities.h"
+#include "chunk.h"
 
-struct chunk{
-    uint32_t data_len;
-    char type[5];
-    uint64_t data_offset;
-    unsigned char crc[4];
-};
-
-//static char chunk_type_no_delete[] = {};
+//static char chunk_type_nodelete[] = {};
 
 static int is_critical(struct chunk* c){
     return isupper((unsigned char)c->type[0]);
@@ -32,31 +26,36 @@ void chunk_list_title(){
 
 struct chunk* get_chunk(FILE* file){
     struct chunk* c = malloc(sizeof(struct chunk));
+    if(c == NULL) return c;
     unsigned char buf[4];
 
-    if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) return NULL;
+    if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) goto fail;
     c->data_len = buf_to_uint32(buf, sizeof(buf));
 
-    if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) return NULL;
+    if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) goto fail;
     memcpy(c->type, buf, sizeof(buf));
-    c->type[5] = *("\0");
+    c->type[4] = *("\0");
 
     long pos = ftell(file);
     if(pos < 0){
         fprintf(stderr, "ftell failed: %s\n", strerror(errno));
-        return NULL;
+        goto fail;
     }
     c->data_offset = pos;
 
     if(fseek(file, c->data_len, SEEK_CUR) < 0){
         fprintf(stderr, "fseek failed: %s\n", strerror(errno));
-        return NULL;
+        goto fail;
     }
 
-    if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) return NULL;
+    if(fread_wrapper(buf, 1, sizeof(buf), file) < 0) goto fail;
     memcpy(c->crc, buf, sizeof(buf));
 
     return c;
+
+    fail:
+        free(c);
+        return NULL;
 }
 
 void print_chunk(struct chunk* c, int cap){
@@ -91,7 +90,7 @@ int is_deletable(struct chunk* c){
     return 1;
 }
 
-uint32_t chunk_integrity(struct chunk* c, FILE* file){
+int chunk_integrity(struct chunk* c, FILE* file){
     long cur_pos = ftell(file);
     if(cur_pos < 0){
         fprintf(stderr, "ftell failed: %s\n", strerror(errno));

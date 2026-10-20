@@ -9,7 +9,7 @@ int main(int argc, char* argv[]){
 
     if(argc < 3){
         fprintf(stderr, "Use: pngfall <command> [args...]\n");
-        goto fail;
+        exit(1);
     }
 
     FILE* file = fopen(argv[2], "r");
