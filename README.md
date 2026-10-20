@@ -51,7 +51,7 @@ $ pngfall delmd pngtest/exif2c08.png stripped.png   # 1788 -> 798 bytes
 
 ## Scope
 
-pngfall works on the container, not on the image.
+pngfall works on the metadata, not on the image.
 
 ## Testing
 
