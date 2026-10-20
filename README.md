@@ -1,6 +1,8 @@
 # pngfall
 
-In the interest of transparency: this README was written with the help of Claude, Anthropic’s AI assistant. The code is entirely my own
+
+
+**In the interest of transparency: this README was written with the help of Claude, Anthropic’s AI assistant. The code is entirely my own**
 
 > A command-line PNG structure inspector written in C, with no external dependencies.
 
