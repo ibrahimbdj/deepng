@@ -204,7 +204,7 @@ int delmd(FILE* file, char* new_file_name){
     }
 
     if(fseek_wrapper(file, (c->data_offset - 8), SEEK_SET) < 0) goto fail;
-    read_bytes = fread_wrapper(buf, 1, (c->data_len + 12), file);
+    read_bytes = fread_wrapper(buf, 1, MIN(sizeof(buf), chunk_size), file);
     if(read_bytes < 0)  goto fail;
     if(fwrite_wrapper(buf, 1, read_bytes, new_file) < 0) goto fail;
 
