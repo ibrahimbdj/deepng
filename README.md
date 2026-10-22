@@ -1,9 +1,5 @@
 # pngfall
 
-
-
-**In the interest of transparency: this README was written with the help of Claude AI. The code is entirely my own**
-
 > A command-line PNG structure inspector written in C, with no external dependencies.
 
 pngfall reads the *skeleton* of a PNG file: it lists the chunks a file is made of, verifies their checksums, decodes the image header, and writes back a copy without the metadata. It never decompresses pixel data.
